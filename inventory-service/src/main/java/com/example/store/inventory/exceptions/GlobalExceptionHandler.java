@@ -1,4 +1,4 @@
-package com.example.store.inventory;
+package com.example.store.inventory.exceptions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +28,18 @@ public class GlobalExceptionHandler {
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("Validation failed", fieldErrors));
+    }
+
+    @ExceptionHandler(InvalidReservationException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidReservation(InvalidReservationException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(e.getMessage(), null));
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorResponse> handleSufficientStock(InsufficientStockException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(e.getMessage(), null));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

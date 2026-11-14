@@ -1,9 +1,11 @@
 package com.example.store.inventory.entities;
 
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
 @Table(name = "reservations")
+@Data
 public class Reservation {
 
     @Id
@@ -21,7 +23,7 @@ public class Reservation {
 
     @Column(name="status", nullable = false)
     @Enumerated(EnumType.STRING)
-    private ReservationStatus status;
+    private ReservationStatus status = ReservationStatus.RESERVED;
 
 
 }
