@@ -1,0 +1,11 @@
+services:                      # a list of containers to run
+  postgres:                    # a name you choose for this one
+    image: postgres:16         # which image to start it from
+    environment:               # settings passed into the container
+      POSTGRES_USER: app       # creates a database user named "app"
+      POSTGRES_PASSWORD: app   # ...with the password "app"
+      POSTGRES_DB: inventory_db  # creates a database with this name on first start
+    ports:
+      - "5432:5432"            # open a door: your-side-port : container-port
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql   # put my file inside the container
