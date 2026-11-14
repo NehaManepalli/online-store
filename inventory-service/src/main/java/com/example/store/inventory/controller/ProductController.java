@@ -1,6 +1,6 @@
 package com.example.store.inventory.controller;
 
-import com.example.store.inventory.CreateProductRequest;
+import com.example.store.inventory.dtos.CreateProductRequest;
 import com.example.store.inventory.entities.Product;
 import com.example.store.inventory.repositories.ProductRepository;
 import com.example.store.inventory.services.ProductService;

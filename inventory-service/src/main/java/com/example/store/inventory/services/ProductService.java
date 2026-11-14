@@ -1,19 +1,13 @@
 package com.example.store.inventory.services;
 
-import com.example.store.inventory.CreateProductRequest;
+import com.example.store.inventory.dtos.CreateProductRequest;
 import com.example.store.inventory.entities.Product;
 import com.example.store.inventory.entities.Stock;
 import com.example.store.inventory.repositories.ProductRepository;
 import com.example.store.inventory.repositories.StockRepository;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
 
 @Service
 public class ProductService {
