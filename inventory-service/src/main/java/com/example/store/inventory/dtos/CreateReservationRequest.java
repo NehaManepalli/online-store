@@ -6,5 +6,5 @@ import jakarta.validation.constraints.*;
 import java.util.List;
 
 
-public record CreateReservationRequest(@NotBlank @Positive  Long orderId, @NotEmpty @Valid List<ReservationItem> items) {
+public record CreateReservationRequest(@NotNull @Positive Long orderId, @NotEmpty @Valid List<ReservationItem> items) {
 }
