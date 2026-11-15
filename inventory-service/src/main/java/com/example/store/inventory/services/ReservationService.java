@@ -78,7 +78,7 @@ public class ReservationService {
         }
         reservationList.sort(Comparator.comparingLong(Reservation::getProductId));
         for(Reservation reservation : reservationList) {
-            int result = reservationRepository.releaseReservation(reservation.getId(),ReservationStatus.RESERVED.name(),ReservationStatus.RELEASED.name());
+            int result = reservationRepository.releaseReservation(reservation.getId(),ReservationStatus.RESERVED,ReservationStatus.RELEASED);
             if(result == 1)
                 stockRepository.reStockOnDeleteReservation(reservation.getProductId(),reservation.getQuantity());
         }
