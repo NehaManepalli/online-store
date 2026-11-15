@@ -4,8 +4,11 @@ import com.example.store.inventory.dtos.CreateReservationRequest;
 import com.example.store.inventory.dtos.ReservationItem;
 import com.example.store.inventory.dtos.ReservationResult;
 import com.example.store.inventory.entities.Reservation;
+import com.example.store.inventory.entities.ReservationStatus;
+import com.example.store.inventory.exceptions.ConflictException;
 import com.example.store.inventory.exceptions.InsufficientStockException;
 import com.example.store.inventory.exceptions.InvalidReservationException;
+import com.example.store.inventory.exceptions.ReservationNotFoundException;
 import com.example.store.inventory.repositories.ReservationRepository;
 import com.example.store.inventory.repositories.StockRepository;
 import jakarta.transaction.Transactional;
@@ -37,10 +40,13 @@ public class ReservationService {
                         "Duplicate product id in request: " + item.productId());
             }
         }
-
-        if (reservationRepository.existsByOrderId(request.orderId())) {
-            return new ReservationResult(false,
-                    reservationRepository.findByOrderId(request.orderId()));
+        List<Reservation> existingReservations = reservationRepository.findByOrderId(request.orderId());
+        if(!existingReservations.isEmpty()){
+            boolean anyReleased = existingReservations.stream().anyMatch(reservation -> reservation.getStatus() == ReservationStatus.RELEASED);
+            if(anyReleased){
+                throw new ConflictException("Reservation is already released : " + request.orderId());
+            }
+            return new ReservationResult(false,existingReservations);
         }
 
         List<ReservationItem> items = new ArrayList<>(request.items());   // copy, then sort
@@ -61,5 +67,21 @@ public class ReservationService {
         }
 
         return new ReservationResult(true, reservationRepository.saveAll(reservations));
+    }
+
+    @Transactional
+    public void deleteReservation(Long orderId) {
+        List<Reservation> reservationList = reservationRepository.findByOrderId(orderId);
+
+        if(reservationList.isEmpty()){
+            throw new ReservationNotFoundException("No reservation found for order id : " + orderId);
+        }
+        reservationList.sort(Comparator.comparingLong(Reservation::getProductId));
+        for(Reservation reservation : reservationList) {
+            int result = reservationRepository.releaseReservation(reservation.getId(),ReservationStatus.RESERVED.name(),ReservationStatus.RELEASED.name());
+            if(result == 1)
+                stockRepository.reStockOnDeleteReservation(reservation.getProductId(),reservation.getQuantity());
+        }
+
     }
 }
