@@ -3,12 +3,11 @@ package com.example.store.inventory.services;
 import com.example.store.inventory.dtos.CreateReservationRequest;
 import com.example.store.inventory.dtos.ReservationItem;
 import com.example.store.inventory.dtos.ReservationResult;
+import com.example.store.inventory.entities.Product;
 import com.example.store.inventory.entities.Reservation;
 import com.example.store.inventory.entities.ReservationStatus;
-import com.example.store.inventory.exceptions.ConflictException;
-import com.example.store.inventory.exceptions.InsufficientStockException;
-import com.example.store.inventory.exceptions.InvalidReservationException;
-import com.example.store.inventory.exceptions.ReservationNotFoundException;
+import com.example.store.inventory.exceptions.*;
+import com.example.store.inventory.repositories.ProductRepository;
 import com.example.store.inventory.repositories.ReservationRepository;
 import com.example.store.inventory.repositories.StockRepository;
 import jakarta.transaction.Transactional;
@@ -24,11 +23,13 @@ public class ReservationService {
 
     private final ReservationRepository reservationRepository;
     private final StockRepository stockRepository;
+    private final ProductRepository productRepository;
 
     public ReservationService(ReservationRepository reservationRepository,
-                              StockRepository stockRepository) {
+                              StockRepository stockRepository, ProductRepository productRepository) {
         this.reservationRepository = reservationRepository;
         this.stockRepository = stockRepository;
+        this.productRepository = productRepository;
     }
 
     @Transactional
@@ -56,8 +57,13 @@ public class ReservationService {
         for (ReservationItem item : items) {
             int updated = stockRepository.decrementIfAvailable(item.productId(), item.quantity());
             if (updated == 0) {
-                throw new InsufficientStockException(
-                        "Insufficient stock for product: " + item.productId());
+                Optional<Product> product = productRepository.findById(item.productId());
+                if(product.isPresent()){
+                    throw new ResourceNotFoundException("Product not found for id : " + item.productId());
+                } else {
+                    throw new InsufficientStockException(
+                            "Insufficient stock for product: " + item.productId());
+                }
             }
             Reservation reservation = new Reservation();
             reservation.setOrderId(request.orderId());
@@ -74,7 +80,7 @@ public class ReservationService {
         List<Reservation> reservationList = reservationRepository.findByOrderId(orderId);
 
         if(reservationList.isEmpty()){
-            throw new ReservationNotFoundException("No reservation found for order id : " + orderId);
+            throw new ResourceNotFoundException("No reservation found for order id : " + orderId);
         }
         reservationList.sort(Comparator.comparingLong(Reservation::getProductId));
         for(Reservation reservation : reservationList) {
