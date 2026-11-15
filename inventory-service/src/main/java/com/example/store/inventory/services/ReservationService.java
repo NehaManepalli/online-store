@@ -58,7 +58,7 @@ public class ReservationService {
             int updated = stockRepository.decrementIfAvailable(item.productId(), item.quantity());
             if (updated == 0) {
                 Optional<Product> product = productRepository.findById(item.productId());
-                if(product.isPresent()){
+                if(!product.isPresent()){
                     throw new ResourceNotFoundException("Product not found for id : " + item.productId());
                 } else {
                     throw new InsufficientStockException(
